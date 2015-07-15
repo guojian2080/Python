@@ -1,0 +1,40 @@
+from urlparse import urljoin
+import urllib2
+import re
+from bs4 import BeautifulSoup
+
+class GetZealerVideo:
+    def __init__(self):
+        self.user = '######'
+        self.password = '******'
+        self.proxyserver = 'xxx.yyy.zzz:8080'
+        self.url = 'http://www.zealer.com'
+        self.content = ''
+    def useproxy(self):
+        proxy = 'http://%s:%s@%s' % (self.user,self.password,self.proxyserver)
+        proxy_handler = urllib2.ProxyHandler({'http':proxy})
+        opener = urllib2.build_opener(proxy_handler,urllib2.HTTPHandler)
+        self.content = opener.open(self.url).read().decode('utf-8')
+
+    def splitcontent(self):
+        self.useproxy()
+        soup = BeautifulSoup(self.content,"html.parser")
+        founddiv = soup.findAll('div',{'class':'subject'})
+        foundli = soup.findAll('div',{'id':re.compile("^li_layer")})
+        l = len(founddiv)
+        lists = []
+        if l == len(foundli):
+                for i in range(l):
+                    b = re.search('/post(/\d+)*',str(foundli[i]))
+                    lists.append(urljoin(self.url,b.group()))
+                    lists.append(founddiv[i].contents[0].encode('utf-8'))
+                    #lists.append(founddiv[i].contents[0].decode('gbk'))
+                    #print urljoin(self.url,b.group())
+                    #print founddiv[i].contents[0]
+        return lists
+                    
+if __name__ == '__main__':
+    gvideo = GetZealerVideo()
+    #print unicode(gvideo.splitcontent(),'cp936')
+    print '.'.join(gvideo.splitcontent()).decode('utf')
+
