@@ -36,7 +36,7 @@ class GetResource(object):
         self.listbox.delete(0, END)
         self.get_m = mnews.GetMyDrivers()
         proxy_set = UseProxy()
-        for l in self.get_m.splitcontent(proxy_set):
+        for l in self.get_m.split_content(proxy_set):
             s = str(l).decode('utf-8')
             try:
                 self.listbox.insert(END, re.findall(r'(?<=href=").+?(?=">)', s)[0]+"\r\n")
