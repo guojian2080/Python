@@ -1,79 +1,26 @@
-from Tkinter import *
-from time import ctime
-import os
-import re
-import GetZealerVideo as soup
-import GetMydrivers as mnews
 from UseProxy import *
+from bs4 import BeautifulSoup
 
-class GetResource(object):
+class GetMyDrivers(object):
     def __init__(self):
-        self.win = Tk()
+        self.url = 'http://www.mydrivers.com'
+        self.content = ''
+        self.lists = []
 
-        self.l1 = StringVar(self.win)
-        self.msg = ""
-        self.frame = Frame(width=800, height=600, bg='white')
-        # self.frame.grid_propagate(False)
-        # self.frame.grid()
-        self.frame.propagate(False)
-        self.frame.pack()
+    def split_content(self, proxyset):
+        # self.useproxy()
+        self.content = proxyset.getproxy().open(self.url).read()
+        soup = BeautifulSoup(self.content, "html.parser", from_encoding="gb18030")
+        print soup.original_encoding
+        found_div = soup.findAll('span', {'class': 'titl'})
 
-        self.scroll = Scrollbar(self.frame)
-        self.scroll.pack(side=RIGHT, fill=Y)
-        # self.scroll.grid(row=0, column=1)
-        self.listbox = Listbox(self.frame, selectbackground='blue', font='12', heigh=550, width=750, yscrollcommand=self.scroll.set,
-                               xscrollcommand=self.scroll.set)
-        self.listbox.pack(side=TOP, fill=BOTH)
-        # self.listbox.grid(row=0, column=0)
-        self.listbox.bind('<Double-1>', self.get_select)
-
-        self.frame2 = Frame(width=800, height=50, bg='white')
-        self.frame2.propagate(False)
-        self.frame2.pack()
-        # self.frame2.grid_propagate(False)
-        # self.frame2.grid()
-        Button(self.frame2, text=u'Get Zealer', command=self.zealer_video).pack(expand=YES)
-        # Button(self.frame2, text=u'Get Zealer', command=self.zealer_video).grid(row=0, column=0)
-
-        Button(self.frame2, text=u'Get Mydrivers', command=self.my_drivers).pack(expand=YES)
-        # Button(self.win, text=u'Get Mydrivers', command=self.my_drivers).grid(row=1, column=1)
-
-    def my_drivers(self):
-        print 'start get at:', ctime()
-        self.listbox.delete(0, END)
-        self.getm = mnews.GetMydrivers()
-        proxyset = UseProxy()
-        for l in self.getm.splitcontent(proxyset):
-            s = str(l).decode('utf-8')
-            try:
-                self.listbox.insert(END, re.findall(r'(?<=href=").+?(?=">)', s)[0]+"\r\n")
-                self.listbox.insert(END, re.findall(r'(?<=>).+?(?=<)', s)[0]+"\r\n")
-                self.listbox.update()
-            except IndexError:
-                pass
-        print 'get done at:', ctime()
-
-    def zealer_video(self):
-        print 'start get at:', ctime()
-        self.listbox.delete(0, END)
-        self.getz = soup.GetZealerVideo()
-        proxyset = UseProxy()
-        for l in self.getz.splitcontent(proxyset):
-            self.listbox.insert(END, l+"\r\n")
-            self.listbox.update()
-        print 'get done at:', ctime()
-
-    def get_select(self, ev=None):
-        self.listbox.config(selectbackground='red')
-        print self.listbox.curselection()
-        self.check = self.listbox.get(self.listbox.curselection())
-        if self.check:
-            if re.match('http', self.check):
-                os.startfile(self.check)
-
-def main():
-    d = GetResource()
-    mainloop()
+        for i in range(len(found_div)):
+            self.lists.append(found_div[i].contents[0])
+        return self.lists
 
 if __name__ == '__main__':
-    main()
+    g_news = GetMyDrivers()
+    proxy_set = UseProxy()
+    lists = g_news.split_content(proxy_set)
+    for l in lists:
+            print str(l).decode('utf-8').encode('gb18030')
